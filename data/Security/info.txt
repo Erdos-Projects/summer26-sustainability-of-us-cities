@@ -1,0 +1,20 @@
+Source:
+
+https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/downloads
+
+
+Variables in crime_per_capita_with_fips:
+
+State_FIPS: 2-digit state FIPS code.
+County_FIPS: 3-digit county FIPS code.
+FIPS_5digit: 5-digit combined state and county FIPS code (standard geographic identifier).
+State: Full state name as reported in the FBI source data.
+County: County name as reported in the FBI source data.
+Year: Calendar year of the crime data (2020–2024).
+Population: County population for the corresponding year, from U.S. Census Bureau annual estimates.
+Violent Crime: Raw count of violent crimes reported to law enforcement (includes murder, rape, robbery, and aggravated assault).
+Property Crime: Raw count of property crimes reported to law enforcement (includes burglary, larceny-theft, and motor vehicle theft).
+Violent Crime Rate: Violent crimes per 100,000 inhabitants (Violent Crime / Population × 100,000).
+Property Crime Rate: Property crimes per 100,000 inhabitants (Property Crime / Population × 100,000).
+
+Note: crime_per_capita_wide.csv has the same information as crime_per_capita_with_fips.csv, but the years variable is dropped and a new variable is included for each year. 
