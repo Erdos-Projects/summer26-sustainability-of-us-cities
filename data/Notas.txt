@@ -1,0 +1,6 @@
+Cuales parecen que valen la pena:
+County Health Rankings
+Food Environment
+identifiers: Parece hablar algo de ingresos
+NRI_Table_Counties: parece hablar de riesgos amibientales (tornados , huracanes...)
+social_economic: no todo parece merecer la pena usarlo. Puede que esto remplace al de "identifiers"

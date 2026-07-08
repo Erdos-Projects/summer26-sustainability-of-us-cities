@@ -1,0 +1,22 @@
+Source: 
+
+https://www.huduser.gov/portal/datasets/50per.html
+
+
+Variables in housing_data_combined:
+
+FIPS_5digit: 5-digit combined state and county FIPS code (standard geographic identifier).
+State_FIPS: 2-digit state FIPS code.
+County_FIPS: 3-digit county FIPS code.
+State: Two-letter state abbreviation.
+County: County name as reported by HUD.
+Fiscal_Year: HUD fiscal year the rent estimate corresponds to (2020–2026).
+Rent_2BR_Monthly: HUD 50th percentile (median market) monthly rent for a 2-bedroom unit, in dollars.
+Rent_2BR_Annual: Annual equivalent of the 2-bedroom rent (Rent_2BR_Monthly × 12), in dollars.
+Median_HH_Income: County median household income in dollars, from the 2025 County Health Rankings release.
+Housing_Affordability_Pct: Annual 2-bedroom rent as a percentage of median household income (Rent_2BR_Annual / Median_HH_Income × 100). Values above 30% indicate cost-burdened households.
+Severe_Housing_Cost_Burden: Share of households spending 50% or more of their income on housing costs, from the 2025 County Health Rankings release (expressed as a proportion, e.g. 0.10 = 10%).
+Severe_Housing_Problems: Share of households with at least one of four severe housing problems (overcrowding, high housing costs, lack of kitchen facilities, or lack of plumbing), from the 2025 County Health Rankings release (expressed as a proportion).
+
+Note: housing_data_wide.csv has the same information as housing_data_combined, but the years variable is dropped and a new variable is included for each year. 
+
