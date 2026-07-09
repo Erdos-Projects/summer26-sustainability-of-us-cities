@@ -12,42 +12,78 @@ def get_base_data():
     return data.load_data(data.DATA_PATH)
 
 
-# Per-dimension "how the data was sourced and studied" text shown in each
-# slider's info popover. All dimensions are on a 0-100, higher-is-better scale.
-# Edit freely (Markdown supported) to expand the methodology notes.
+# Per-dimension info shown in each slider's popover. "Current score" describes
+# the data feeding the dashboard today; "Suggested variables / Scoring rule /
+# Fixes" are drawn from the team's
+# "Suggested variables, fixes and scoring recommendations.xlsx".
+# All dimensions are on a 0-100, higher-is-better scale. Edit freely (Markdown).
 DIMENSION_INFO = {
     "Financial Well-Being": (
-        "**Score:** `stability_score` (0–100, higher = better).\n\n"
-        "**Source:** `code/financial_sustainability.csv`.\n\n"
-        "**Methodology:** composite of county economic indicators — "
-        "unemployment, median household income, job growth/density, employment "
-        "rate, and income distribution."
+        "**Current score:** `stability_score` (0–100, higher = better) — "
+        "composite of county income, jobs and employment "
+        "(`code/financial_sustainability.csv`).\n\n"
+        "**Suggested variables:**\n"
+        "- *Income:* higher = better — median household income, % households "
+        "> $200k; lower = better — poverty rate, % households < $30k.\n"
+        "- *Jobs:* higher = better — employment rate, jobs within 5 mi, annual "
+        "job growth; lower = better — unemployment rate.\n"
+        "- *Housing / cost of living:* lower = better — severe housing cost "
+        "burden, housing burden %, two-bedroom rent, energy burden.\n\n"
+        "**Scoring rule:** normalize each variable, invert the lower-is-better "
+        "ones, then average."
     ),
     "Environmental Sustainability": (
-        "**Score:** inverted `Environmental_Risk_Index`, percentile-ranked to "
-        "0–100 (higher = lower environmental risk).\n\n"
-        "**Source:** `data/environmental_ranking.csv`.\n\n"
-        "**Methodology:** air-quality / pollution risk (PM2.5, ozone, NO₂, "
-        "diesel PM, traffic, RSEI air toxics). The raw index is a risk z-score "
-        "(higher = worse); it is inverted and percentile-ranked across counties."
+        "**Current score:** inverted, percentile-ranked `Environmental_Risk_Index`"
+        " (0–100, higher = lower risk) — air pollution / toxics "
+        "(`data/environmental_ranking.csv`).\n\n"
+        "**Suggested variables:**\n"
+        "- *Air & pollution (lower = better):* PM2.5, ozone, air-toxics cancer "
+        "risk; optional traffic proximity, wastewater discharge.\n"
+        "- *Climate & hazard risk (lower = better):* FEMA overall risk & "
+        "expected annual loss, drought, wildfire, flood; optional hurricane.\n\n"
+        "**Scoring rule:** normalize each, average the inverted risk metrics → "
+        "higher = cleaner air / lower hazard risk.\n\n"
+        "**Fixes:** use a single PM2.5 source; consider adding NOAA "
+        "climate-trend variables (extreme-heat days, temperature/precipitation "
+        "trend)."
     ),
     "Safety and Crime": (
-        "**Score:** `Crime Score` (0–100, higher = safer).\n\n"
-        "**Source:** `code/Security/Crime_Score_by_County.csv`.\n\n"
-        "**Methodology:** county crime rates (FBI offense reports), scored so "
-        "higher = safer. Covers ~88% of counties."
+        "**Current score:** `Crime Score` (0–100, higher = safer) "
+        "(`code/Security/Crime_Score_by_County.csv`); covers ~88% of counties."
+        "\n\n"
+        "**Suggested variables** (FBI crime data, lower = better): violent "
+        "crime, property crime; optional homicide, motor-vehicle theft.\n\n"
+        "**Scoring rule:** convert counts to per-capita rates, invert, and "
+        "average → higher = safer.\n\n"
+        "**Fix:** always use per-capita rates — raw counts penalize larger "
+        "counties."
     ),
     "Infrastructure and Community": (
-        "**Score:** `social_capital_mobility_index` (0–100, higher = better).\n\n"
-        "**Source:** `social_capital_mobility_index.csv`.\n\n"
-        "**Methodology:** county social-capital and economic-mobility index."
+        "**Current score:** `social_capital_mobility_index` (0–100, higher = "
+        "better) (`social_capital_mobility_index.csv`).\n\n"
+        "**Suggested variables:**\n"
+        "- *Mobility & infrastructure:* higher = better — broadband access; "
+        "lower = better — long solo commute, average commute time (population "
+        "density is context only).\n"
+        "- *Social capital & community (higher = better):* economic "
+        "connectedness, social support ratio; optional volunteering rate, "
+        "civic organizations, childhood economic connectedness.\n\n"
+        "**Scoring rule:** invert commute metrics, keep broadband and social "
+        "metrics positive, normalize and average."
     ),
     "Quality of Life": (
-        "**Score:** `Health and Quality of Life Score` (0–100, higher = better)."
-        "\n\n**Source:** "
-        "`code/Health and Quality of Life/Health and Quality of Life Score by "
-        "County.csv`.\n\n"
-        "**Methodology:** county health and quality-of-life composite."
+        "**Current score:** `Health and Quality of Life Score` (0–100, higher = "
+        "better) (`code/Health and Quality of Life/…Score by County.csv`).\n\n"
+        "**Suggested variables:**\n"
+        "- *Health & QoL:* higher = better — quality-of-life index, life "
+        "expectancy; lower = better — injury deaths (backup).\n"
+        "- *Water, food & amenities:* lower = better — drinking-water "
+        "violations, low food access; higher = better — recreation/fitness "
+        "facilities, food hubs.\n\n"
+        "**Scoring rule:** keep positive health/livability metrics, invert "
+        "burdens and violations, normalize and average.\n\n"
+        "**Note:** don’t use `QOL_index` as both an input and the target if "
+        "building a custom score."
     ),
 }
 
@@ -57,9 +93,9 @@ def _weight_key(dimension):
 
 
 def _default_weight(dimension):
-    """Default: Financial Well-Being only, so the initial map matches the
-    pure stability_score view."""
-    return 100 if dimension == data.FINANCIAL_DIMENSION else 0
+    """Default: every dimension weighted 50, so the initial map (and the reset
+    button) shows an equal blend of all five dimensions."""
+    return 50
 
 
 def reset_weights():
