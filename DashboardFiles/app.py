@@ -3,43 +3,51 @@ import streamlit as st
 import data
 import viz
 
-st.set_page_config(page_title="County Financial Stability", layout="wide")
+st.set_page_config(page_title="County Sustainability", layout="wide")
 
 
 @st.cache_data
 def get_base_data():
-    """Load and attach dimension columns once; cached across reruns."""
-    return data.add_dimension_scores(data.load_data(data.DATA_PATH))
+    """Load the merged per-county dimension scores once; cached across reruns."""
+    return data.load_data(data.DATA_PATH)
 
 
 # Per-dimension "how the data was sourced and studied" text shown in each
-# slider's info popover. Replace the placeholders with real methodology notes
-# (Markdown is supported).
+# slider's info popover. All dimensions are on a 0-100, higher-is-better scale.
+# Edit freely (Markdown supported) to expand the methodology notes.
 DIMENSION_INFO = {
     "Financial Well-Being": (
-        "_Currently the real `stability_score` (0-100)._\n\n"
-        "**Source:** _TODO_\n\n"
-        "**Methodology:** _TODO — how the data was sourced and studied._"
+        "**Score:** `stability_score` (0–100, higher = better).\n\n"
+        "**Source:** `code/financial_sustainability.csv`.\n\n"
+        "**Methodology:** composite of county economic indicators — "
+        "unemployment, median household income, job growth/density, employment "
+        "rate, and income distribution."
     ),
     "Environmental Sustainability": (
-        "_Placeholder data until real values are supplied._\n\n"
-        "**Source:** _TODO_\n\n"
-        "**Methodology:** _TODO — how the data was sourced and studied._"
+        "**Score:** inverted `Environmental_Risk_Index`, percentile-ranked to "
+        "0–100 (higher = lower environmental risk).\n\n"
+        "**Source:** `data/environmental_ranking.csv`.\n\n"
+        "**Methodology:** air-quality / pollution risk (PM2.5, ozone, NO₂, "
+        "diesel PM, traffic, RSEI air toxics). The raw index is a risk z-score "
+        "(higher = worse); it is inverted and percentile-ranked across counties."
     ),
     "Safety and Crime": (
-        "_Placeholder data until real values are supplied._\n\n"
-        "**Source:** _TODO_\n\n"
-        "**Methodology:** _TODO — how the data was sourced and studied._"
+        "**Score:** `Crime Score` (0–100, higher = safer).\n\n"
+        "**Source:** `code/Security/Crime_Score_by_County.csv`.\n\n"
+        "**Methodology:** county crime rates (FBI offense reports), scored so "
+        "higher = safer. Covers ~88% of counties."
     ),
     "Infrastructure and Community": (
-        "_Placeholder data until real values are supplied._\n\n"
-        "**Source:** _TODO_\n\n"
-        "**Methodology:** _TODO — how the data was sourced and studied._"
+        "**Score:** `social_capital_mobility_index` (0–100, higher = better).\n\n"
+        "**Source:** `social_capital_mobility_index.csv`.\n\n"
+        "**Methodology:** county social-capital and economic-mobility index."
     ),
     "Quality of Life": (
-        "_Placeholder data until real values are supplied._\n\n"
-        "**Source:** _TODO_\n\n"
-        "**Methodology:** _TODO — how the data was sourced and studied._"
+        "**Score:** `Health and Quality of Life Score` (0–100, higher = better)."
+        "\n\n**Source:** "
+        "`code/Health and Quality of Life/Health and Quality of Life Score by "
+        "County.csv`.\n\n"
+        "**Methodology:** county health and quality-of-life composite."
     ),
 }
 
@@ -66,9 +74,9 @@ def render_weight_sliders():
     a reset button in the sidebar, and return a {dimension: weight} dict."""
     st.sidebar.header("Dimension weights")
     st.sidebar.caption(
-        "Blend the five dimensions into the ranking. Only Financial "
-        "Well-Being uses real data; the others are placeholders until real "
-        "per-county data is added."
+        "Blend the five dimensions into the ranking. Each is a 0–100 "
+        "(higher = better) county score; see each dimension's info for source "
+        "and methodology."
     )
     st.sidebar.button(
         "Reset to defaults", on_click=reset_weights, use_container_width=True
@@ -96,7 +104,7 @@ def render_table(title, table):
 
 
 def main():
-    st.title("County Financial Stability Dashboard")
+    st.title("County Sustainability Dashboard")
 
     try:
         base = get_base_data()

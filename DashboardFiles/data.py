@@ -3,20 +3,19 @@ import math
 import numpy as np
 import pandas as pd
 
-DATA_PATH = "financial_sustainability.csv"
-USED_COLUMNS = ["5fipscode", "stability_score", "State Name", "County Name"]
+# The merged, per-county dimension scores (built by build_dimensions.py). Every
+# dimension column is on a 0-100, higher-is-better scale.
+DATA_PATH = "dimension_scores.csv"
 
-# The five ranking dimensions. Only Financial Well-Being is backed by real
-# data (stability_score); the rest are deterministic placeholders on a 0-100
-# scale until real per-county data is supplied.
+# The five ranking dimensions, all backed by real data.
 FINANCIAL_DIMENSION = "Financial Well-Being"
-PLACEHOLDER_DIMENSIONS = [
+DIMENSIONS = [
+    FINANCIAL_DIMENSION,
     "Environmental Sustainability",
     "Safety and Crime",
     "Infrastructure and Community",
     "Quality of Life",
 ]
-DIMENSIONS = [FINANCIAL_DIMENSION] + PLACEHOLDER_DIMENSIONS
 
 
 def clean_fips(value):
@@ -34,61 +33,43 @@ def clean_fips(value):
 
 
 def load_data(path):
-    """Read the CSV, keep the relevant columns, clean FIPS, title-case names,
-    and drop rows with missing FIPS or missing stability_score."""
-    df = pd.read_csv(path, usecols=USED_COLUMNS)
-    df = df.rename(
-        columns={
-            "5fipscode": "fips",
-            "State Name": "state",
-            "County Name": "county",
-        }
-    )
+    """Read the merged dimension_scores CSV. Returns fips (5-digit string),
+    state, county, and one 0-100 column per dimension. A dimension may be NaN
+    for counties missing from that source; compute_score handles those."""
+    df = pd.read_csv(path, dtype={"fips": str})
     df["fips"] = df["fips"].map(clean_fips)
-    df["state"] = df["state"].str.title()
-    df["county"] = df["county"].str.title()
-    df = df.dropna(subset=["fips", "stability_score"])
-    return df[["fips", "stability_score", "state", "county"]].reset_index(drop=True)
-
-
-def add_dimension_scores(df):
-    """Return a copy of df with a 0-100 score column for each of the five
-    dimensions. Financial Well-Being mirrors the real stability_score; the
-    other four are deterministic placeholders (seeded, so they are stable
-    across reruns) until real per-county data replaces them."""
-    result = df.copy()
-    if FINANCIAL_DIMENSION not in result.columns:
-        result[FINANCIAL_DIMENSION] = result["stability_score"]
-    for offset, dimension in enumerate(PLACEHOLDER_DIMENSIONS):
-        if dimension in result.columns:
-            continue
-        rng = np.random.default_rng(1000 + offset)
-        result[dimension] = rng.normal(60, 20, size=len(result))
-    return result
+    df = df.dropna(subset=["fips"]).reset_index(drop=True)
+    return df[["fips", "state", "county"] + DIMENSIONS]
 
 
 def compute_score(df, weights=None):
     """Return a copy of df with a `score` column on a 0-100 scale.
 
     With no weights (or all-zero weights) the score is the Financial
-    Well-Being dimension (stability_score). Otherwise the score is the
-    weight-normalized average of the five dimension columns:
-    score = sum(weight_i * dimension_i) / sum(weight_i)."""
-    result = add_dimension_scores(df)
+    Well-Being dimension. Otherwise the score is the weight-normalized average
+    of the dimension columns, computed per county over the dimensions that are
+    present (missing dimensions are skipped, and their weight drops out of the
+    denominator) so partial-coverage counties still get a score:
+    score = sum(w_i * dim_i) / sum(w_i)  over present dimensions."""
+    result = df.copy()
     total = sum(weights.values()) if weights else 0
     if total == 0:
-        result["score"] = result["stability_score"]
+        result["score"] = result[FINANCIAL_DIMENSION]
         return result
-    weighted = sum(
-        weights.get(dimension, 0) * result[dimension] for dimension in DIMENSIONS
-    )
-    result["score"] = weighted / total
+    w = np.array([weights.get(dimension, 0) for dimension in DIMENSIONS], dtype=float)
+    values = result[DIMENSIONS].to_numpy(dtype=float)
+    present = ~np.isnan(values)
+    denominator = present @ w  # per-county sum of weights where the value exists
+    numerator = np.nansum(values * w, axis=1)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        result["score"] = np.where(denominator > 0, numerator / denominator, np.nan)
     return result
 
 
 def top_bottom(df, n=5):
-    """Return (top_n, bottom_n) by `score`, each with county/state/score."""
-    ordered = df.sort_values("score", ascending=False)
+    """Return (top_n, bottom_n) by `score`, each with county/state/score.
+    Counties with no score (all weighted dimensions missing) are excluded."""
+    ordered = df.dropna(subset=["score"]).sort_values("score", ascending=False)
     columns = ["county", "state", "score"]
     top = ordered.head(n)[columns].reset_index(drop=True)
     bottom = ordered.tail(n)[columns].iloc[::-1].reset_index(drop=True)
