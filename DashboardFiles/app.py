@@ -193,18 +193,14 @@ def render_explorer(df):
     ].sort_values("Overall", ascending=False)
 
     score_cols = ["Overall"] + list(friendly.values())
-    column_config = {
-        col: st.column_config.ProgressColumn(
-            col, min_value=0, max_value=100, format="%.0f"
-        )
-        for col in score_cols
-    }
+    # Show whole-number scores, with "N/A" for counties missing that dimension.
+    # Values stay numeric underneath, so column sorting is still numeric.
+    styled = display.style.format("{:.0f}", subset=score_cols, na_rep="N/A")
     st.dataframe(
-        display,
+        styled,
         hide_index=True,
         use_container_width=True,
         height=430,
-        column_config=column_config,
     )
 
 
