@@ -171,7 +171,11 @@ def render_explorer(df):
     )
     states = sorted(df["state"].dropna().unique())
     chosen = f2.multiselect(
-        "states", states, placeholder="Filter by state", label_visibility="collapsed"
+        "states",
+        states,
+        placeholder="Filter by state",
+        label_visibility="collapsed",
+        key="state_filter",
     )
 
     view = df
@@ -231,7 +235,14 @@ def main():
     weights = render_weight_sliders()
     df = data.compute_score(base, weights)
 
-    st.plotly_chart(viz.build_map(df), use_container_width=True)
+    # The table's state filter (rendered below) also drives the map: when one or
+    # more states are selected, restrict the map to those states and zoom in.
+    selected_states = st.session_state.get("state_filter", [])
+    map_df = df[df["state"].isin(selected_states)] if selected_states else df
+    st.plotly_chart(
+        viz.build_map(map_df, zoom_to_data=bool(selected_states)),
+        use_container_width=True,
+    )
     render_explorer(df)
 
 
