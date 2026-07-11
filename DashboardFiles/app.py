@@ -16,11 +16,11 @@ st.markdown(
       .block-container {padding-top: 1.4rem; padding-bottom: 0.5rem; max-width: 100%;}
       h1 {font-weight: 800; letter-spacing: -0.5px; font-size: 1.9rem; margin-bottom: 0;}
 
-      /* Condense the sidebar so 8 sliders fit without scrolling. */
+      /* Condense the sidebar while leaving room for each slider's value bubble. */
       section[data-testid="stSidebar"] {min-width: 300px; max-width: 320px;}
       section[data-testid="stSidebar"] .block-container {padding-top: 1rem;}
-      section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap: 0.3rem;}
-      section[data-testid="stSidebar"] [data-testid="stSlider"] label p {font-size: 0.8rem;}
+      section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap: 0.65rem;}
+      section[data-testid="stSidebar"] [data-testid="stSlider"] label p {font-size: 0.82rem;}
       section[data-testid="stSidebar"] div[data-testid="stSliderTickBarMin"],
       section[data-testid="stSidebar"] div[data-testid="stSliderTickBarMax"] {display: none;}
     </style>
@@ -244,15 +244,13 @@ def render_explorer(df, all_states, state_scoped):
 
 
 def main():
-    head_left, head_right = st.columns([6, 1])
-    with head_left:
-        st.title("🌎 County Sustainability Explorer")
-        st.caption(
-            "Blend the eight factors that matter to you and see how every U.S. "
-            "county measures up."
-        )
-    with head_right:
-        st.button("↺ Reset all", on_click=reset_all, use_container_width=True)
+    st.title("🌎 County Sustainability Explorer")
+    st.caption(
+        "Blend the eight factors that matter to you and see how every U.S. "
+        "county measures up."
+    )
+    reset_col, _ = st.columns([2, 8])
+    reset_col.button("↺ Reset all", on_click=reset_all, use_container_width=True)
 
     try:
         base = get_base_data()
