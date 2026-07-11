@@ -3,8 +3,9 @@
 Interactive US-county map colored by a weighted blend of eight 0–100 dimensions
 (Financial Well-Being, Air Pollution and Climate Risk, Security, Housing,
 Health and Quality of Life, Mobility and Infrastructure, Social Capital and
-Community, Food, Water, Amenities), with sidebar weight sliders, per-dimension
-info popovers, a reset button, and Top 5 / Bottom 5 tables.
+Community, Food, Water, Amenities). Compact sidebar weight sliders (each with a
+methodology tooltip and a reset), a reactive KPI row, a full-width choropleth,
+and a searchable, sortable table of every county's per-dimension scores.
 
 ## Setup
 

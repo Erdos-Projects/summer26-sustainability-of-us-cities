@@ -12,8 +12,14 @@ def build_map(df):
         range_color=(0, 100),
         scope="usa",
         hover_name="county",
-        hover_data={"state": True, "score": ":.2f", "fips": False},
-        labels={"score": "Stability"},
+        hover_data={"state": True, "score": ":.1f", "fips": False},
+        labels={"score": "Score"},
     )
-    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+    fig.update_layout(
+        height=560,
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        geo={"bgcolor": "rgba(0,0,0,0)", "lakecolor": "rgba(0,0,0,0)"},
+        paper_bgcolor="rgba(0,0,0,0)",
+        coloraxis_colorbar={"title": "Score", "thickness": 12},
+    )
     return fig
