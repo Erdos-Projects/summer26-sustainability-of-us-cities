@@ -7,18 +7,28 @@ st.set_page_config(
     page_title="County Sustainability Explorer", page_icon="🌎", layout="wide"
 )
 
-# A little styling for a friendlier, product-like feel.
+# Styling tuned so everything fits in one viewport (no scrolling): a tight main
+# area, compact metric cards, and an aggressively condensed sidebar so all eight
+# sliders are visible at once.
 st.markdown(
     """
     <style>
-      .block-container {padding-top: 2.2rem; padding-bottom: 2rem;}
+      .block-container {padding-top: 1.4rem; padding-bottom: 0.5rem; max-width: 100%;}
+      h1 {font-weight: 800; letter-spacing: -0.5px; font-size: 1.9rem; margin-bottom: 0;}
       [data-testid="stMetric"] {
         background: #f6f8fa; border: 1px solid #e6e9ef;
-        border-radius: 14px; padding: 12px 18px;
+        border-radius: 12px; padding: 6px 14px;
       }
-      [data-testid="stMetricValue"] {font-size: 1.2rem;}
-      section[data-testid="stSidebar"] {min-width: 300px;}
-      h1 {font-weight: 800; letter-spacing: -0.5px;}
+      [data-testid="stMetricValue"] {font-size: 1.0rem;}
+      [data-testid="stMetricLabel"] {font-size: 0.78rem;}
+
+      /* Condense the sidebar so 8 sliders fit without scrolling. */
+      section[data-testid="stSidebar"] {min-width: 300px; max-width: 320px;}
+      section[data-testid="stSidebar"] .block-container {padding-top: 1rem;}
+      section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap: 0.3rem;}
+      section[data-testid="stSidebar"] [data-testid="stSlider"] label p {font-size: 0.8rem;}
+      section[data-testid="stSidebar"] div[data-testid="stSliderTickBarMin"],
+      section[data-testid="stSidebar"] div[data-testid="stSliderTickBarMax"] {display: none;}
     </style>
     """,
     unsafe_allow_html=True,
@@ -143,8 +153,7 @@ def reset_weights():
 def render_weight_sliders():
     """Render the compact dimension-weight sliders (each with a ⓘ methodology
     tooltip) and a reset button in the sidebar; return a {dimension: weight}."""
-    st.sidebar.header("⚖️ Weight your priorities")
-    st.sidebar.caption("Slide up what matters to you — the map and table update live.")
+    st.sidebar.markdown("#### ⚖️ Weight your priorities")
     st.sidebar.button("↺ Reset weights", on_click=reset_weights, use_container_width=True)
 
     weights = {}
@@ -176,13 +185,17 @@ def render_kpis(df):
 
 
 def render_explorer(df):
-    """Searchable, sortable table of every county's per-dimension scores."""
-    st.subheader("📋 Explore every county")
-
-    f1, f2 = st.columns([2, 2])
-    query = f1.text_input("🔎 Search county or state", placeholder="e.g. Cook, or Texas")
+    """Searchable, sortable table of every county's per-dimension scores.
+    Rendered inside a column, so it stays beside the map (no vertical scroll)."""
+    st.markdown("##### 📋 Explore every county")
+    f1, f2 = st.columns(2)
+    query = f1.text_input(
+        "search", placeholder="🔎 Search county or state", label_visibility="collapsed"
+    )
     states = sorted(df["state"].dropna().unique())
-    chosen = f2.multiselect("Filter by state", states)
+    chosen = f2.multiselect(
+        "states", states, placeholder="Filter by state", label_visibility="collapsed"
+    )
 
     view = df
     if query:
@@ -209,11 +222,6 @@ def render_explorer(df):
         )
         for col in score_cols
     }
-
-    st.caption(
-        f"{len(display):,} counties · click any column header to sort · "
-        "scores are 0–100 (higher is better)."
-    )
     st.dataframe(
         display,
         hide_index=True,
@@ -247,8 +255,11 @@ def main():
     df = data.compute_score(base, weights)
 
     render_kpis(df)
-    st.plotly_chart(viz.build_map(df), use_container_width=True)
-    render_explorer(df)
+    map_col, table_col = st.columns([3, 2], gap="medium")
+    with map_col:
+        st.plotly_chart(viz.build_map(df), use_container_width=True)
+    with table_col:
+        render_explorer(df)
 
 
 if __name__ == "__main__":

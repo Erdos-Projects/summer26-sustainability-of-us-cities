@@ -16,7 +16,7 @@ def build_map(df):
         labels={"score": "Score"},
     )
     fig.update_layout(
-        height=560,
+        height=480,
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
         geo={"bgcolor": "rgba(0,0,0,0)", "lakecolor": "rgba(0,0,0,0)"},
         paper_bgcolor="rgba(0,0,0,0)",
