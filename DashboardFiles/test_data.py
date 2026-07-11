@@ -22,7 +22,11 @@ def test_clean_fips_returns_none_for_nan():
 
 def test_load_data_columns_and_shape():
     df = data.load_data(data.DATA_PATH)
-    assert list(df.columns) == ["fips", "state", "county"] + data.DIMENSIONS
+    expected = ["fips", "state", "county"] + data.DIMENSIONS + [
+        "population",
+        "population_score",
+    ]
+    assert list(df.columns) == expected
     assert len(df) == 3153
     assert df["fips"].map(len).eq(5).all()
     # Financial Well-Being is the real, fully-populated 0-100 base dimension.
@@ -134,6 +138,24 @@ def test_top_bottom_excludes_nan_scores():
     assert bottom["score"].notna().all()
     assert top["score"].tolist() == [50.0, 40.0]
     assert bottom["score"].tolist() == [10.0, 20.0]
+
+
+def test_population_weight_favors_populous_counties():
+    df = _synthetic(2)
+    # Both counties identical on the eight dimensions; only population differs.
+    df["population_score"] = [90.0, 10.0]
+    even = data.compute_score(df, {d: 10 for d in data.DIMENSIONS}, pop_weight=0)
+    assert abs(even.loc[0, "composite"] - even.loc[1, "composite"]) < 1e-9
+    favored = data.compute_score(df, {d: 10 for d in data.DIMENSIONS}, pop_weight=100)
+    assert favored.loc[0, "composite"] > favored.loc[1, "composite"]
+
+
+def test_population_weight_default_zero_is_unchanged():
+    df = data.load_data(data.DATA_PATH)
+    weights = {d: 50 for d in data.DIMENSIONS}
+    assert data.compute_score(df, weights)["composite"].equals(
+        data.compute_score(df, weights, pop_weight=0)["composite"]
+    )
 
 
 def test_rescore_percentile_within_subset():

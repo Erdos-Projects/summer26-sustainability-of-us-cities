@@ -42,10 +42,11 @@ def load_data(path):
     df = pd.read_csv(path, dtype={"fips": str})
     df["fips"] = df["fips"].map(clean_fips)
     df = df.dropna(subset=["fips"]).reset_index(drop=True)
-    return df[["fips", "state", "county"] + DIMENSIONS]
+    extra = [c for c in ("population", "population_score") if c in df.columns]
+    return df[["fips", "state", "county"] + DIMENSIONS + extra]
 
 
-def compute_score(df, weights=None):
+def compute_score(df, weights=None, pop_weight=0):
     """Return a copy of df with `composite` and `score` columns.
 
     `composite` is the weight-normalized average of the dimension columns,
@@ -55,20 +56,35 @@ def compute_score(df, weights=None):
     dimensions. With no weights (or all-zero weights) it is the Financial
     Well-Being dimension.
 
+    `pop_weight` (0-100) blends the county's `population_score` in as an extra
+    weighted term, so populous counties can be favored and tiny counties don't
+    dominate on noisy scores. At 0 it has no effect.
+
     `score` is the national percentile rank (0-100) of `composite`. The map is
     colored by `score` and the table shows it as "Overall", so the full 0-100
     range is used and counties spread evenly instead of clustering mid-scale.
     Counties with no composite (all weighted dimensions missing) stay NaN."""
     result = df.copy()
-    total = sum(weights.values()) if weights else 0
-    if total == 0:
+    w = (
+        np.array([weights.get(dimension, 0) for dimension in DIMENSIONS], dtype=float)
+        if weights
+        else np.zeros(len(DIMENSIONS))
+    )
+    pop_weight = float(pop_weight or 0)
+    use_pop = pop_weight > 0 and "population_score" in result.columns
+
+    if w.sum() == 0 and not use_pop:
         composite = result[FINANCIAL_DIMENSION].to_numpy(dtype=float)
     else:
-        w = np.array([weights.get(dimension, 0) for dimension in DIMENSIONS], dtype=float)
         values = result[DIMENSIONS].to_numpy(dtype=float)
         present = ~np.isnan(values)
         denominator = present @ w  # per-county sum of weights where a value exists
         numerator = np.nansum(values * w, axis=1)
+        if use_pop:
+            pop = result["population_score"].to_numpy(dtype=float)
+            pop_present = ~np.isnan(pop)
+            denominator = denominator + pop_present * pop_weight
+            numerator = numerator + np.where(pop_present, pop, 0.0) * pop_weight
         with np.errstate(invalid="ignore", divide="ignore"):
             composite = np.where(denominator > 0, numerator / denominator, np.nan)
     result["composite"] = composite

@@ -133,13 +133,32 @@ def _financial_names():
     return base.dropna(subset=["fips"]).drop_duplicates(subset=["fips"])
 
 
+def _population():
+    """Per-county population (from the environmental source), keyed by FIPS."""
+    path = os.path.join(REPO_ROOT, "data", "environmental_ranking.csv")
+    df = pd.read_csv(path, usecols=["FIPS", "Population"])
+    out = pd.DataFrame({
+        "fips": df["FIPS"].map(clean_fips),
+        "population": pd.to_numeric(df["Population"], errors="coerce"),
+    })
+    return out.dropna(subset=["fips"]).drop_duplicates(subset=["fips"])
+
+
 def build(mobility_src, social_src, out_path="dimension_scores.csv"):
     merged = _financial_names()
     dim_specs = specs(mobility_src, social_src)
     for name in DIMENSIONS:  # preserve dashboard column order
         merged = merged.merge(_load_dimension(name, dim_specs[name]),
                               on="fips", how="left")
-    merged = merged[["fips", "state", "county"] + DIMENSIONS].reset_index(drop=True)
+    # Population + its national percentile (0-100), for the "favor populous
+    # areas" blend in the dashboard.
+    merged = merged.merge(_population(), on="fips", how="left")
+    # National population percentile (0-100). Counties missing population (e.g.
+    # some Alaska boroughs) get the neutral median (50) so the "favor populous"
+    # blend neither boosts nor penalizes them.
+    merged["population_score"] = (merged["population"].rank(pct=True) * 100).fillna(50.0)
+    cols = ["fips", "state", "county"] + DIMENSIONS + ["population", "population_score"]
+    merged = merged[cols].reset_index(drop=True)
     merged.to_csv(out_path, index=False)
     return merged
 

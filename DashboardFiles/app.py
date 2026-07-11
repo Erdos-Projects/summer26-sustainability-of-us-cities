@@ -137,11 +137,15 @@ def _default_weight(dimension):
     return 50
 
 
+DEFAULT_POP_WEIGHT = 50
+
+
 def reset_weights():
     """Reset every slider to its default (runs as a button on_click callback,
     before the sliders are re-rendered, so the widgets pick up the new values)."""
     for dimension in data.DIMENSIONS:
         st.session_state[_weight_key(dimension)] = _default_weight(dimension)
+    st.session_state["pop_weight"] = DEFAULT_POP_WEIGHT
 
 
 def render_weight_sliders():
@@ -158,7 +162,21 @@ def render_weight_sliders():
             _short_label(dimension), 0, 100, key=key, help=DIMENSION_INFO[dimension]
         )
         weights[dimension] = st.session_state[key]
-    return weights
+
+    st.sidebar.markdown("---")
+    st.session_state.setdefault("pop_weight", DEFAULT_POP_WEIGHT)
+    st.sidebar.slider(
+        "🏙️ Favor populous areas",
+        0,
+        100,
+        key="pop_weight",
+        help=(
+            "Blends county population into the ranking so tiny counties don't "
+            "dominate on noisy scores. 0 = ignore population; higher = favor "
+            "more-populous counties."
+        ),
+    )
+    return weights, st.session_state["pop_weight"]
 
 
 def render_explorer(df, all_states, state_scoped):
@@ -191,16 +209,28 @@ def render_explorer(df, all_states, state_scoped):
 
     friendly = {dimension: _short_label(dimension) for dimension in data.DIMENSIONS}
     display = view.rename(
-        columns={"county": "County", "state": "State", "score": "Overall %ile", **friendly}
+        columns={
+            "county": "County",
+            "state": "State",
+            "population": "Population",
+            "score": "Overall %ile",
+            **friendly,
+        }
     )
-    display = display[
-        ["County", "State", "Overall %ile"] + list(friendly.values())
-    ].sort_values("Overall %ile", ascending=False)
+    lead = ["County", "State"]
+    if "Population" in display.columns:
+        lead.append("Population")
+    display = display[lead + ["Overall %ile"] + list(friendly.values())].sort_values(
+        "Overall %ile", ascending=False
+    )
 
     score_cols = ["Overall %ile"] + list(friendly.values())
-    # Show whole-number scores, with "N/A" for counties missing that dimension.
-    # Values stay numeric underneath, so column sorting is still numeric.
-    styled = display.style.format("{:.0f}", subset=score_cols, na_rep="N/A")
+    # Whole-number scores with "N/A" for missing dimensions; population with
+    # thousands separators. Values stay numeric underneath, so sorting is numeric.
+    fmt = {col: "{:.0f}" for col in score_cols}
+    if "Population" in display.columns:
+        fmt["Population"] = "{:,.0f}"
+    styled = display.style.format(fmt, na_rep="N/A")
     scope = "within the selected state(s)" if state_scoped else "national"
     st.caption(
         f"**Overall %ile** = {scope} percentile of the weighted composite "
@@ -234,8 +264,8 @@ def main():
         st.warning("No county data available to display.")
         return
 
-    weights = render_weight_sliders()
-    df = data.compute_score(base, weights)
+    weights, pop_weight = render_weight_sliders()
+    df = data.compute_score(base, weights, pop_weight)
 
     # The table's state filter (rendered below) also drives the map. When one or
     # more states are selected, restrict to those states, zoom in, and re-rank
