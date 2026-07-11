@@ -18,7 +18,8 @@ st.markdown(
 
       /* Condense the sidebar while leaving room for each slider's value bubble. */
       section[data-testid="stSidebar"] {min-width: 300px; max-width: 320px;}
-      section[data-testid="stSidebar"] .block-container {padding-top: 1rem;}
+      section[data-testid="stSidebar"] .block-container {padding-top: 0.25rem;}
+      section[data-testid="stSidebar"] h2 {margin-top: 0; padding-top: 0;}
       section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap: 0.65rem;}
       section[data-testid="stSidebar"] [data-testid="stSlider"] label p {font-size: 0.82rem;}
       section[data-testid="stSidebar"] div[data-testid="stSliderTickBarMin"],
