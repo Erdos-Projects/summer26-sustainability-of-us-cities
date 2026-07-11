@@ -53,14 +53,14 @@ def get_base_data():
 
 
 # Per-dimension methodology shown in each slider's ⓘ help tooltip. "Current
-# score" is the data feeding the dashboard today; "Suggested variables /
+# score" is the data feeding the dashboard today; "Considered variabless /
 # Scoring rule / Fixes" come from the team's
-# "Suggested variables, fixes and scoring recommendations.xlsx".
+# "Considered variabless, fixes and scoring recommendations.xlsx".
 DIMENSION_INFO = {
     "Financial Well-Being": (
         "**Current score:** `stability_score` (0–100, higher = better) — "
         "composite of county income, jobs and employment.\n\n"
-        "**Suggested variables:** *Income* — median household income, poverty "
+        "**Considered variables:** *Income* — median household income, poverty "
         "rate, income distribution; *Jobs* — employment rate, jobs within 5 mi, "
         "job growth, unemployment.\n\n"
         "**Scoring rule:** normalize each, invert the lower-is-better ones, "
@@ -69,42 +69,38 @@ DIMENSION_INFO = {
     "Air Pollution and Climate Risk": (
         "**Current score:** inverted, percentile-ranked `Environmental_Risk_Index`"
         " (0–100, higher = lower risk).\n\n"
-        "**Suggested variables:** *Air* — PM2.5, ozone, air-toxics cancer risk; "
+        "**Considered variabless:** *Air* — PM2.5, ozone, air-toxics cancer risk; "
         "*Climate/hazard* — FEMA risk & expected annual loss, drought, "
         "wildfire, flood.\n\n"
         "**Scoring rule:** average the inverted risk metrics → higher = cleaner "
-        "air / lower hazard risk.\n\n"
-        "**Fix:** consider adding NOAA climate-trend variables."
+        "air / lower hazard risk."
     ),
     "Security": (
         "**Current score:** `Crime Score` (0–100, higher = safer); covers ~88% "
         "of counties.\n\n"
-        "**Suggested variables** (FBI crime data): violent crime, property "
+        "**Considered variabless** (FBI crime data): violent crime, property "
         "crime; optional homicide, motor-vehicle theft.\n\n"
-        "**Scoring rule:** convert to per-capita rates, invert, average.\n\n"
-        "**Fix:** always use per-capita rates — raw counts penalize large "
-        "counties."
+        "**Scoring rule:** convert to per-capita rates, invert, average."
+    
     ),
     "Housing": (
         "**Current score:** `Housing Score` (0–100, higher = more affordable)."
-        "\n\n**Suggested variables** (lower = better): severe housing cost "
+        "\n\n**Considered variabless** (lower = better): severe housing cost "
         "burden, housing burden %, two-bedroom rent; optional energy burden.\n\n"
-        "**Scoring rule:** average the inverted burden metrics.\n\n"
-        "**Fix:** consider adding actual rent / home value (ACS, Zillow)."
+        "**Scoring rule:** average the inverted burden metrics."
     ),
     "Health and Quality of Life": (
         "**Current score:** `Health and Quality of Life Score` (0–100, higher = "
         "better).\n\n"
-        "**Suggested variables:** quality-of-life index, life expectancy "
+        "**Considered variabless:** quality-of-life index, life expectancy "
         "(higher = better); injury deaths (lower = better, backup).\n\n"
         "**Scoring rule:** keep positive health metrics, invert injury deaths, "
-        "average.\n\n"
-        "**Note:** don’t use `QOL_index` as both input and target."
+        "average."
     ),
     "Mobility and Infrastructure": (
         "**Current score:** inverted `commute_burden_index` (100 − burden; "
         "0–100, higher = easier daily life).\n\n"
-        "**Suggested variables:** broadband access (higher = better); long solo "
+        "**Considered variabless:** broadband access (higher = better); long solo "
         "commute, average commute time (lower = better).\n\n"
         "**Scoring rule:** invert commute metrics, keep broadband positive, "
         "average."
@@ -112,14 +108,14 @@ DIMENSION_INFO = {
     "Social Capital and Community": (
         "**Current score:** `economic_connectedness_index` (0–100, higher = "
         "better).\n\n"
-        "**Suggested variables** (higher = better): economic connectedness, "
+        "**Considered variabless** (higher = better): economic connectedness, "
         "social support ratio; optional volunteering, civic organizations.\n\n"
         "**Scoring rule:** normalize and average the community-strength metrics."
     ),
     "Food, Water, Amenities": (
         "**Current score:** `Food, Water and Amenities Score` (0–100, higher = "
         "better).\n\n"
-        "**Suggested variables:** drinking-water violations, low food access "
+        "**Considered variabless:** drinking-water violations, low food access "
         "(lower = better); recreation facilities, food hubs (higher = better)."
         "\n\n**Scoring rule:** invert violations/low-access, keep amenities "
         "positive, average."
@@ -140,19 +136,22 @@ def _default_weight(dimension):
 DEFAULT_POP_WEIGHT = 50
 
 
-def reset_weights():
-    """Reset every slider to its default (runs as a button on_click callback,
-    before the sliders are re-rendered, so the widgets pick up the new values)."""
+def reset_all():
+    """Reset every dynamic control on the page — the dimension weights, the
+    population slider, the state filter and the search box — to defaults. Runs
+    as a button on_click callback, before the widgets are re-created, so they
+    pick up the reset values."""
     for dimension in data.DIMENSIONS:
         st.session_state[_weight_key(dimension)] = _default_weight(dimension)
     st.session_state["pop_weight"] = DEFAULT_POP_WEIGHT
+    st.session_state["state_filter"] = []
+    st.session_state["county_search"] = ""
 
 
 def render_weight_sliders():
     """Render the compact dimension-weight sliders (each with a ⓘ methodology
     tooltip) and a reset button in the sidebar; return a {dimension: weight}."""
-    st.sidebar.markdown("#### ⚖️ Weight your priorities")
-    st.sidebar.button("↺ Reset weights", on_click=reset_weights, use_container_width=True)
+    st.sidebar.markdown("## Weights")
 
     weights = {}
     for dimension in data.DIMENSIONS:
@@ -245,11 +244,15 @@ def render_explorer(df, all_states, state_scoped):
 
 
 def main():
-    st.title("🌎 County Sustainability Explorer")
-    st.caption(
-        "Blend the eight factors that matter to you and see how every U.S. "
-        "county measures up."
-    )
+    head_left, head_right = st.columns([6, 1])
+    with head_left:
+        st.title("🌎 County Sustainability Explorer")
+        st.caption(
+            "Blend the eight factors that matter to you and see how every U.S. "
+            "county measures up."
+        )
+    with head_right:
+        st.button("↺ Reset all", on_click=reset_all, use_container_width=True)
 
     try:
         base = get_base_data()
