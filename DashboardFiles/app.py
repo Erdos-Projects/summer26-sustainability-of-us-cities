@@ -15,12 +15,6 @@ st.markdown(
     <style>
       .block-container {padding-top: 1.4rem; padding-bottom: 0.5rem; max-width: 100%;}
       h1 {font-weight: 800; letter-spacing: -0.5px; font-size: 1.9rem; margin-bottom: 0;}
-      [data-testid="stMetric"] {
-        background: #f6f8fa; border: 1px solid #e6e9ef;
-        border-radius: 12px; padding: 6px 14px;
-      }
-      [data-testid="stMetricValue"] {font-size: 1.0rem;}
-      [data-testid="stMetricLabel"] {font-size: 0.78rem;}
 
       /* Condense the sidebar so 8 sliders fit without scrolling. */
       section[data-testid="stSidebar"] {min-width: 300px; max-width: 320px;}
@@ -167,23 +161,6 @@ def render_weight_sliders():
     return weights
 
 
-def render_kpis(df):
-    """Headline metrics that react to the current weights."""
-    ranked = df.dropna(subset=["score"])
-    if ranked.empty:
-        return
-    top = ranked.sort_values("score", ascending=False).iloc[0]
-    c1, c2, c3 = st.columns(3)
-    c1.metric(
-        "🏆 Top county",
-        top["county"],
-        f"{top['state']} · {top['score']:.0f}/100",
-        delta_color="off",
-    )
-    c2.metric("🗺️ Counties ranked", f"{len(ranked):,}")
-    c3.metric("📈 Average score", f"{ranked['score'].mean():.0f}/100")
-
-
 def render_explorer(df):
     """Searchable, sortable table of every county's per-dimension scores.
     Rendered inside a column, so it stays beside the map (no vertical scroll)."""
@@ -254,12 +231,8 @@ def main():
     weights = render_weight_sliders()
     df = data.compute_score(base, weights)
 
-    render_kpis(df)
-    map_col, table_col = st.columns([3, 2], gap="medium")
-    with map_col:
-        st.plotly_chart(viz.build_map(df), use_container_width=True)
-    with table_col:
-        render_explorer(df)
+    st.plotly_chart(viz.build_map(df), use_container_width=True)
+    render_explorer(df)
 
 
 if __name__ == "__main__":
