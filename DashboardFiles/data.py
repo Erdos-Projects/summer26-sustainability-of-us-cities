@@ -46,26 +46,33 @@ def load_data(path):
 
 
 def compute_score(df, weights=None):
-    """Return a copy of df with a `score` column on a 0-100 scale.
+    """Return a copy of df with `composite` and `score` columns.
 
-    With no weights (or all-zero weights) the score is the Financial
-    Well-Being dimension. Otherwise the score is the weight-normalized average
-    of the dimension columns, computed per county over the dimensions that are
-    present (missing dimensions are skipped, and their weight drops out of the
-    denominator) so partial-coverage counties still get a score:
-    score = sum(w_i * dim_i) / sum(w_i)  over present dimensions."""
+    `composite` is the weight-normalized average of the dimension columns,
+    computed per county over the dimensions that are present (missing ones are
+    skipped and their weight drops out of the denominator) so partial-coverage
+    counties still get a value: sum(w_i * dim_i) / sum(w_i) over present
+    dimensions. With no weights (or all-zero weights) it is the Financial
+    Well-Being dimension.
+
+    `score` is the national percentile rank (0-100) of `composite`. The map is
+    colored by `score` and the table shows it as "Overall", so the full 0-100
+    range is used and counties spread evenly instead of clustering mid-scale.
+    Counties with no composite (all weighted dimensions missing) stay NaN."""
     result = df.copy()
     total = sum(weights.values()) if weights else 0
     if total == 0:
-        result["score"] = result[FINANCIAL_DIMENSION]
-        return result
-    w = np.array([weights.get(dimension, 0) for dimension in DIMENSIONS], dtype=float)
-    values = result[DIMENSIONS].to_numpy(dtype=float)
-    present = ~np.isnan(values)
-    denominator = present @ w  # per-county sum of weights where the value exists
-    numerator = np.nansum(values * w, axis=1)
-    with np.errstate(invalid="ignore", divide="ignore"):
-        result["score"] = np.where(denominator > 0, numerator / denominator, np.nan)
+        composite = result[FINANCIAL_DIMENSION].to_numpy(dtype=float)
+    else:
+        w = np.array([weights.get(dimension, 0) for dimension in DIMENSIONS], dtype=float)
+        values = result[DIMENSIONS].to_numpy(dtype=float)
+        present = ~np.isnan(values)
+        denominator = present @ w  # per-county sum of weights where a value exists
+        numerator = np.nansum(values * w, axis=1)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            composite = np.where(denominator > 0, numerator / denominator, np.nan)
+    result["composite"] = composite
+    result["score"] = pd.Series(composite, index=result.index).rank(pct=True) * 100
     return result
 
 

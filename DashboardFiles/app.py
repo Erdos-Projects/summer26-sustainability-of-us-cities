@@ -186,16 +186,20 @@ def render_explorer(df):
 
     friendly = {dimension: _short_label(dimension) for dimension in data.DIMENSIONS}
     display = view.rename(
-        columns={"county": "County", "state": "State", "score": "Overall", **friendly}
+        columns={"county": "County", "state": "State", "score": "Overall %ile", **friendly}
     )
     display = display[
-        ["County", "State", "Overall"] + list(friendly.values())
-    ].sort_values("Overall", ascending=False)
+        ["County", "State", "Overall %ile"] + list(friendly.values())
+    ].sort_values("Overall %ile", ascending=False)
 
-    score_cols = ["Overall"] + list(friendly.values())
+    score_cols = ["Overall %ile"] + list(friendly.values())
     # Show whole-number scores, with "N/A" for counties missing that dimension.
     # Values stay numeric underneath, so column sorting is still numeric.
     styled = display.style.format("{:.0f}", subset=score_cols, na_rep="N/A")
+    st.caption(
+        "**Overall %ile** = national percentile of the weighted composite "
+        "(0–100). Dimension columns are 0–100 scores; **N/A** = no data."
+    )
     st.dataframe(
         styled,
         hide_index=True,

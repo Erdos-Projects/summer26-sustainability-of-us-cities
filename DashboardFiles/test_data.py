@@ -37,33 +37,43 @@ def test_load_data_has_named_counties():
     assert row["county"] == "Autauga"
 
 
-def test_compute_score_default_is_financial_dimension():
+def test_compute_score_default_composite_is_financial_dimension():
     df = data.load_data(data.DATA_PATH)
     scored = data.compute_score(df)
-    assert "score" in scored.columns
-    assert scored["score"].equals(scored[data.FINANCIAL_DIMENSION])
+    assert {"composite", "score"} <= set(scored.columns)
+    assert scored["composite"].equals(scored[data.FINANCIAL_DIMENSION])
 
 
-def test_compute_score_financial_only_matches_financial():
+def test_compute_score_financial_only_composite_matches_financial():
     df = data.load_data(data.DATA_PATH)
     scored = data.compute_score(df, {data.FINANCIAL_DIMENSION: 100})
-    diff = (scored["score"] - scored[data.FINANCIAL_DIMENSION]).abs().max()
+    diff = (scored["composite"] - scored[data.FINANCIAL_DIMENSION]).abs().max()
     assert diff < 1e-9
 
 
-def test_compute_score_equal_weights_is_row_nanmean():
+def test_compute_score_equal_weights_composite_is_row_nanmean():
     df = data.load_data(data.DATA_PATH)
     scored = data.compute_score(df, {d: 50 for d in data.DIMENSIONS})
     # Equal weights => per-county mean over the dimensions present (skipna).
     expected = scored[data.DIMENSIONS].mean(axis=1)
+    assert (scored["composite"] - expected).abs().max() < 1e-9
+    assert scored["composite"].between(0, 100).all()
+
+
+def test_score_is_percentile_rank_of_composite():
+    df = data.load_data(data.DATA_PATH)
+    scored = data.compute_score(df, {d: 50 for d in data.DIMENSIONS})
+    expected = scored["composite"].rank(pct=True) * 100
     assert (scored["score"] - expected).abs().max() < 1e-9
     assert scored["score"].between(0, 100).all()
+    # The highest composite sits at the top percentile.
+    assert abs(scored.loc[scored["composite"].idxmax(), "score"] - 100.0) < 1e-6
 
 
-def test_compute_score_all_zero_weights_falls_back_to_financial():
+def test_compute_score_all_zero_weights_composite_falls_back_to_financial():
     df = data.load_data(data.DATA_PATH)
     scored = data.compute_score(df, {d: 0 for d in data.DIMENSIONS})
-    assert scored["score"].equals(scored[data.FINANCIAL_DIMENSION])
+    assert scored["composite"].equals(scored[data.FINANCIAL_DIMENSION])
 
 
 def _synthetic(n_rows=1):
@@ -86,13 +96,13 @@ def test_compute_score_skips_missing_dimension():
     df.loc[0, "Security"] = np.nan
     df.loc[0, "Air Pollution and Climate Risk"] = 100.0
     scored = data.compute_score(df, {d: 10 for d in data.DIMENSIONS})
-    # Row 0: one dim excluded (NaN), one at 100, the rest at 50 -> equal-weight
-    # mean over the present dimensions.
+    # Row 0 composite: one dim excluded (NaN), one at 100, the rest at 50 ->
+    # equal-weight mean over the present dimensions.
     present = len(data.DIMENSIONS) - 1
     expected = (100.0 + 50.0 * (present - 1)) / present
-    assert abs(scored.loc[0, "score"] - expected) < 1e-9
+    assert abs(scored.loc[0, "composite"] - expected) < 1e-9
     # Row 1 untouched: all 50 -> 50.
-    assert abs(scored.loc[1, "score"] - 50.0) < 1e-9
+    assert abs(scored.loc[1, "composite"] - 50.0) < 1e-9
 
 
 def test_compute_score_nan_when_all_weighted_dims_missing():
@@ -100,6 +110,7 @@ def test_compute_score_nan_when_all_weighted_dims_missing():
     for dimension in data.DIMENSIONS:
         df.loc[0, dimension] = np.nan
     scored = data.compute_score(df, {d: 10 for d in data.DIMENSIONS})
+    assert pd.isna(scored.loc[0, "composite"])
     assert pd.isna(scored.loc[0, "score"])
 
 
