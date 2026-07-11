@@ -13,7 +13,7 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-      .block-container {padding-top: 1.4rem; padding-bottom: 0.5rem; max-width: 100%;}
+      .block-container {padding-top: 3rem; padding-bottom: 0.5rem; max-width: 100%;}
       h1 {font-weight: 800; letter-spacing: -0.5px; font-size: 1.9rem; margin-bottom: 0;}
 
       /* Condense the sidebar while leaving room for each slider's value bubble. */
@@ -245,13 +245,15 @@ def render_explorer(df, all_states, state_scoped):
 
 
 def main():
-    st.title("🌎 County Sustainability Explorer")
+    head_left, head_right = st.columns([8, 2], vertical_alignment="center")
+    with head_left:
+        st.title("🌎 County Sustainability Explorer")
+    with head_right:
+        st.button("↺ Reset all", on_click=reset_all, use_container_width=True)
     st.caption(
         "Blend the eight factors that matter to you and see how every U.S. "
         "county measures up."
     )
-    reset_col, _ = st.columns([2, 8])
-    reset_col.button("↺ Reset all", on_click=reset_all, use_container_width=True)
 
     try:
         base = get_base_data()
