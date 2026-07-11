@@ -161,18 +161,21 @@ def render_weight_sliders():
     return weights
 
 
-def render_explorer(df):
-    """Searchable, sortable table of every county's per-dimension scores.
-    Rendered inside a column, so it stays beside the map (no vertical scroll)."""
+def render_explorer(df, all_states, state_scoped):
+    """Searchable, sortable table of the (already state-scoped) counties'
+    per-dimension scores. The state filter is rendered here but applied upstream
+    (it also drives the map); this function only applies the text search."""
     st.markdown("##### 📋 Explore every county")
     f1, f2 = st.columns(2)
     query = f1.text_input(
-        "search", placeholder="🔎 Search county or state", label_visibility="collapsed"
+        "search",
+        placeholder="🔎 Search county or state",
+        label_visibility="collapsed",
+        key="county_search",
     )
-    states = sorted(df["state"].dropna().unique())
-    chosen = f2.multiselect(
+    f2.multiselect(
         "states",
-        states,
+        all_states,
         placeholder="Filter by state",
         label_visibility="collapsed",
         key="state_filter",
@@ -185,8 +188,6 @@ def render_explorer(df):
             view["county"].str.lower().str.contains(q, na=False)
             | view["state"].str.lower().str.contains(q, na=False)
         ]
-    if chosen:
-        view = view[view["state"].isin(chosen)]
 
     friendly = {dimension: _short_label(dimension) for dimension in data.DIMENSIONS}
     display = view.rename(
@@ -200,8 +201,9 @@ def render_explorer(df):
     # Show whole-number scores, with "N/A" for counties missing that dimension.
     # Values stay numeric underneath, so column sorting is still numeric.
     styled = display.style.format("{:.0f}", subset=score_cols, na_rep="N/A")
+    scope = "within the selected state(s)" if state_scoped else "national"
     st.caption(
-        "**Overall %ile** = national percentile of the weighted composite "
+        f"**Overall %ile** = {scope} percentile of the weighted composite "
         "(0–100). Dimension columns are 0–100 scores; **N/A** = no data."
     )
     st.dataframe(
@@ -235,15 +237,21 @@ def main():
     weights = render_weight_sliders()
     df = data.compute_score(base, weights)
 
-    # The table's state filter (rendered below) also drives the map: when one or
-    # more states are selected, restrict the map to those states and zoom in.
+    # The table's state filter (rendered below) also drives the map. When one or
+    # more states are selected, restrict to those states, zoom in, and re-rank
+    # the percentile within the selection (state-relative instead of national).
+    all_states = sorted(base["state"].dropna().unique())
     selected_states = st.session_state.get("state_filter", [])
-    map_df = df[df["state"].isin(selected_states)] if selected_states else df
+    if selected_states:
+        scoped = data.rescore_percentile(df[df["state"].isin(selected_states)])
+    else:
+        scoped = df
+
     st.plotly_chart(
-        viz.build_map(map_df, zoom_to_data=bool(selected_states)),
+        viz.build_map(scoped, zoom_to_data=bool(selected_states)),
         use_container_width=True,
     )
-    render_explorer(df)
+    render_explorer(scoped, all_states, bool(selected_states))
 
 
 if __name__ == "__main__":

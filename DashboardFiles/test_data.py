@@ -134,3 +134,19 @@ def test_top_bottom_excludes_nan_scores():
     assert bottom["score"].notna().all()
     assert top["score"].tolist() == [50.0, 40.0]
     assert bottom["score"].tolist() == [10.0, 20.0]
+
+
+def test_rescore_percentile_within_subset():
+    df = data.compute_score(
+        data.load_data(data.DATA_PATH), {d: 50 for d in data.DIMENSIONS}
+    )
+    subset = df[df["state"] == "Wyoming"]
+    rescored = data.rescore_percentile(subset)
+    # score is now the percentile of composite within the subset only.
+    expected = subset["composite"].rank(pct=True) * 100
+    assert (rescored["score"] - expected).abs().max() < 1e-9
+    # the subset's best county sits at the 100th percentile within the subset,
+    # which is a higher (state-relative) score than its national percentile.
+    best = subset["composite"].idxmax()
+    assert abs(rescored.loc[best, "score"] - 100.0) < 1e-6
+    assert rescored.loc[best, "score"] >= df.loc[best, "score"]

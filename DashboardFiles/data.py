@@ -72,7 +72,17 @@ def compute_score(df, weights=None):
         with np.errstate(invalid="ignore", divide="ignore"):
             composite = np.where(denominator > 0, numerator / denominator, np.nan)
     result["composite"] = composite
-    result["score"] = pd.Series(composite, index=result.index).rank(pct=True) * 100
+    result["score"] = result["composite"].rank(pct=True) * 100
+    return result
+
+
+def rescore_percentile(df):
+    """Return a copy of df with `score` recomputed as the percentile rank
+    (0-100) of `composite` within the rows of df. Used when the view is
+    filtered to a subset of states, so the percentile becomes state-relative
+    instead of national."""
+    result = df.copy()
+    result["score"] = result["composite"].rank(pct=True) * 100
     return result
 
 
