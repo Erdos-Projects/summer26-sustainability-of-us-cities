@@ -7,14 +7,17 @@ import pandas as pd
 # dimension column is on a 0-100, higher-is-better scale.
 DATA_PATH = "dimension_scores.csv"
 
-# The five ranking dimensions, all backed by real data.
+# The eight ranking dimensions, all backed by real data.
 FINANCIAL_DIMENSION = "Financial Well-Being"
 DIMENSIONS = [
     FINANCIAL_DIMENSION,
-    "Environmental Sustainability",
-    "Safety and Crime",
-    "Infrastructure and Community",
-    "Quality of Life",
+    "Air Pollution and Climate Risk",
+    "Security",
+    "Housing",
+    "Health and Quality of Life",
+    "Mobility and Infrastructure",
+    "Social Capital and Community",
+    "Food, Water, Amenities",
 ]
 
 

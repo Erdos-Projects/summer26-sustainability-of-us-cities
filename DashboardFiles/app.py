@@ -26,15 +26,13 @@ DIMENSION_INFO = {
         "- *Income:* higher = better — median household income, % households "
         "> $200k; lower = better — poverty rate, % households < $30k.\n"
         "- *Jobs:* higher = better — employment rate, jobs within 5 mi, annual "
-        "job growth; lower = better — unemployment rate.\n"
-        "- *Housing / cost of living:* lower = better — severe housing cost "
-        "burden, housing burden %, two-bedroom rent, energy burden.\n\n"
+        "job growth; lower = better — unemployment rate.\n\n"
         "**Scoring rule:** normalize each variable, invert the lower-is-better "
         "ones, then average."
     ),
-    "Environmental Sustainability": (
+    "Air Pollution and Climate Risk": (
         "**Current score:** inverted, percentile-ranked `Environmental_Risk_Index`"
-        " (0–100, higher = lower risk) — air pollution / toxics "
+        " (0–100, higher = lower risk) "
         "(`data/environmental_ranking.csv`).\n\n"
         "**Suggested variables:**\n"
         "- *Air & pollution (lower = better):* PM2.5, ozone, air-toxics cancer "
@@ -47,7 +45,7 @@ DIMENSION_INFO = {
         "climate-trend variables (extreme-heat days, temperature/precipitation "
         "trend)."
     ),
-    "Safety and Crime": (
+    "Security": (
         "**Current score:** `Crime Score` (0–100, higher = safer) "
         "(`code/Security/Crime_Score_by_County.csv`); covers ~88% of counties."
         "\n\n"
@@ -58,32 +56,55 @@ DIMENSION_INFO = {
         "**Fix:** always use per-capita rates — raw counts penalize larger "
         "counties."
     ),
-    "Infrastructure and Community": (
-        "**Current score:** `social_capital_mobility_index` (0–100, higher = "
-        "better) (`social_capital_mobility_index.csv`).\n\n"
-        "**Suggested variables:**\n"
-        "- *Mobility & infrastructure:* higher = better — broadband access; "
-        "lower = better — long solo commute, average commute time (population "
-        "density is context only).\n"
-        "- *Social capital & community (higher = better):* economic "
-        "connectedness, social support ratio; optional volunteering rate, "
-        "civic organizations, childhood economic connectedness.\n\n"
-        "**Scoring rule:** invert commute metrics, keep broadband and social "
-        "metrics positive, normalize and average."
+    "Housing": (
+        "**Current score:** `Housing Score` (0–100, higher = more affordable) "
+        "(`code/Housing/Housing_Score_by_County.csv`).\n\n"
+        "**Suggested variables** (lower = better): severe housing cost burden, "
+        "housing burden %, two-bedroom rent; optional energy burden.\n\n"
+        "**Scoring rule:** average the inverted burden metrics → higher = more "
+        "affordable.\n\n"
+        "**Fix:** consider adding actual rent / home-value (ACS, Zillow) for "
+        "interpretability."
     ),
-    "Quality of Life": (
+    "Health and Quality of Life": (
         "**Current score:** `Health and Quality of Life Score` (0–100, higher = "
         "better) (`code/Health and Quality of Life/…Score by County.csv`).\n\n"
-        "**Suggested variables:**\n"
-        "- *Health & QoL:* higher = better — quality-of-life index, life "
-        "expectancy; lower = better — injury deaths (backup).\n"
-        "- *Water, food & amenities:* lower = better — drinking-water "
-        "violations, low food access; higher = better — recreation/fitness "
-        "facilities, food hubs.\n\n"
+        "**Suggested variables:** higher = better — quality-of-life index, life "
+        "expectancy; lower = better — injury deaths (backup).\n\n"
         "**Scoring rule:** keep positive health/livability metrics, invert "
-        "burdens and violations, normalize and average.\n\n"
+        "injury deaths, normalize and average.\n\n"
         "**Note:** don’t use `QOL_index` as both an input and the target if "
         "building a custom score."
+    ),
+    "Mobility and Infrastructure": (
+        "**Current score:** inverted `commute_burden_index` (100 − burden; "
+        "0–100, higher = easier daily life) "
+        "(`MobilityData_with_index.csv`).\n\n"
+        "**Suggested variables:** higher = better — broadband access; lower = "
+        "better — long solo commute, average commute time (population density "
+        "is context only).\n\n"
+        "**Scoring rule:** invert commute metrics, keep broadband positive, "
+        "normalize and average."
+    ),
+    "Social Capital and Community": (
+        "**Current score:** `economic_connectedness_index` (0–100, higher = "
+        "better) (`SocialCapitalData_with_index.csv`).\n\n"
+        "**Suggested variables** (higher = better): economic connectedness, "
+        "social support ratio; optional volunteering rate, civic organizations, "
+        "childhood economic connectedness.\n\n"
+        "**Scoring rule:** normalize and average the community-strength "
+        "metrics."
+    ),
+    "Food, Water, Amenities": (
+        "**Current score:** `Food, Water and Amenities Score` (0–100, higher = "
+        "better) "
+        "(`code/Food Water and Amenities/Final Food, Water and Amenities "
+        "Score.csv`).\n\n"
+        "**Suggested variables:** lower = better — drinking-water violations, "
+        "low food access; higher = better — recreation/fitness facilities, "
+        "food hubs.\n\n"
+        "**Scoring rule:** invert violations/low-access, keep amenities "
+        "positive, normalize and average."
     ),
 }
 

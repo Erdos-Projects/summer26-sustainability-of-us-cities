@@ -1,9 +1,10 @@
 # County Sustainability Dashboard
 
-Interactive US-county map colored by a weighted blend of five 0–100 dimensions
-(Financial Well-Being, Environmental Sustainability, Safety and Crime,
-Infrastructure and Community, Quality of Life), with sidebar weight sliders,
-per-dimension info popovers, a reset button, and Top 5 / Bottom 5 tables.
+Interactive US-county map colored by a weighted blend of eight 0–100 dimensions
+(Financial Well-Being, Air Pollution and Climate Risk, Security, Housing,
+Health and Quality of Life, Mobility and Infrastructure, Social Capital and
+Community, Food, Water, Amenities), with sidebar weight sliders, per-dimension
+info popovers, a reset button, and Top 5 / Bottom 5 tables.
 
 ## Setup
 

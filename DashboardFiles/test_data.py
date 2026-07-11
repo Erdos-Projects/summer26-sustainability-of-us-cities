@@ -83,11 +83,14 @@ def test_compute_score_skips_missing_dimension():
     df = _synthetic(2)
     # Row 0: one dimension missing, another raised; weight of the missing
     # dimension must drop out of the denominator.
-    df.loc[0, "Safety and Crime"] = np.nan
-    df.loc[0, "Environmental Sustainability"] = 100.0
+    df.loc[0, "Security"] = np.nan
+    df.loc[0, "Air Pollution and Climate Risk"] = 100.0
     scored = data.compute_score(df, {d: 10 for d in data.DIMENSIONS})
-    # Row 0 present dims: 50, 100, 50, 50 -> mean 62.5 (Safety excluded).
-    assert abs(scored.loc[0, "score"] - 62.5) < 1e-9
+    # Row 0: one dim excluded (NaN), one at 100, the rest at 50 -> equal-weight
+    # mean over the present dimensions.
+    present = len(data.DIMENSIONS) - 1
+    expected = (100.0 + 50.0 * (present - 1)) / present
+    assert abs(scored.loc[0, "score"] - expected) < 1e-9
     # Row 1 untouched: all 50 -> 50.
     assert abs(scored.loc[1, "score"] - 50.0) < 1e-9
 
