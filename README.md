@@ -100,6 +100,35 @@ EDA notebook
 Final category score output
 - code/Housing/Housing_Score_by_County.csv
 
+### Category: Financial Well-Being
+This category captures county-level data about job access, income, employment, and debt.
+
+Datasets used and sources
+- US Census/ Neighborhood Characteristics by Tract
+https://www.census.gov/programs-surveys/ces/data/public-use-data/opportunity-atlas-data-tables.html
+
+- County Health Rankings https://www.countyhealthrankings.org/
+
+- US Census / Employment Status for Block Groups
+https://www.census.gov/data/datasets/time-series/demo/labor-force/acs-employ.html
+
+Raw data location
+- data/social_economic/nbhd_characteristics_by_census_tract.csv
+- data/social_economic/nbhd_characteristics_by_census_tract.csv
+- data/CountyHealthRankings/analytic_data2025_v3.csv
+- data/social_economic/avg_credit_card_balance_2020_cty.csv
+- data/social_economic/avg_credit_score_2020_cty.csv
+
+Cleaned data with selected variables
+- code/financial_sustainability.csv
+
+EDA notebook
+- financial_sustainability_analysis.ipynb
+
+Final category score output
+- code/financial_sustainability.csv
+
+
 ## Data Sources
 
 The project uses publicly available county-level and census-tract-level datasets from various sources. Some datasets were originally reported at the census tract level and were aggregated to the county level. After cleaning and merging, the final analytical data covers more than 3,000 U.S. counties.
