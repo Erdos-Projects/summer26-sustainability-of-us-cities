@@ -68,7 +68,7 @@ Final category score output
 This category captures county-level crime raw values and crime rates per capita.
 
 Datasets used and sources
-- FBI webpage:https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/downloads
+- FBI webpage: https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/downloads
 
 Raw data location
 - data/Security
@@ -100,6 +100,30 @@ EDA notebook
 Final category score output
 - code/Housing/Housing_Score_by_County.csv
 
+### Category: Air pollution & climate risk
+Captures US counties' risk level for air pollution and climate-related disasters 
+
+Datasets used and sources
+- EPA EJScreen 
+
+Raw data location
+- data/EPAEJScreen/epa_2024.csv (file too large, it is not on the repo)
+- data/NRI_Table_Counties/NRI_Table_Counties.csv
+- data/Food Environment/nata2014v2_national_allhi.xlsx
+- data/Food Environment/nata2014v2_national_cancerrisk_by_tract_srcgrp.xlsx
+
+Cleaned data with selected variables
+- data/master_pollution_data.csv
+
+EDA/merging notebook
+- code/Merging_pollution_data.ipynb
+
+Scoring methodology:
+- code/pollution_data_ranking.ipynb
+
+Final category score output
+- data/environmental_ranking.csv
+
 ### Category: Financial Well-Being
 This category captures county-level data about job access, income, employment, and debt.
 
@@ -123,7 +147,7 @@ Cleaned data with selected variables
 - code/financial_sustainability.csv
 
 EDA notebook
-- financial_sustainability_analysis.ipynb
+- code/financial_sustainability_analysis.ipynb
 
 Final category score output
 - code/financial_sustainability.csv
