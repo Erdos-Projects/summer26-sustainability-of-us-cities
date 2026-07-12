@@ -1,0 +1,15 @@
+pandas
+numpy
+
+matplotlib
+seaborn
+plotly
+missingno
+
+scikit-learn
+scipy
+
+jupyter
+notebook
+ipykernel
+nbformat
