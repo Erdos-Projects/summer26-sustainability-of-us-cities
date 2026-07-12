@@ -32,13 +32,17 @@ This category captures county-level conditions related to food access, water con
 Datasets used and sources
 - County Health Rankings https://www.countyhealthrankings.org/
 - USDA Food Environment https://www.ers.usda.gov/data-products/food-environment-atlas
+
 Raw data location
 - data/CountyHealthRankings/analytic_data2025_v3.csv
 - data/Food Environment/StateAndCountyData.csv
+
 Cleaned data with selected variables
 - code/Food Water and Amenities/food_water_amenities.csv
+
 EDA notebook
 - code/Food Water and Amenities/Food_water_and_amenities.ipynb
+
 Final category score output
 - code/Food Water and Amenities/Final Food, Water and Amenities Score.csv
  
@@ -47,12 +51,16 @@ This category captures county-level health outcomes, access to care, and overall
 
 Datasets used and sources
 - County Health Rankings https://www.countyhealthrankings.org/
+
 Raw data location
 - data/CountyHealthRankings/analytic_data2025_v3.csv
+
 Cleaned data with selected variables
 - code/Health and Quality of Life/health_and_quality_of_life.csv
+
 EDA notebook
 - code/Health and Quality of Life/Health_and_quality_of_life.ipynb
+
 Final category score output
 - code/Health and Quality of Life/Health and Quality of Life Score by County.csv
 
@@ -61,12 +69,16 @@ This category captures county-level crime raw values and crime rates per capita.
 
 Datasets used and sources
 - FBI webpage:https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/downloads
+
 Raw data location
 - data/Security
+
 Cleaned data with selected variables
 - data/Security/crime_per_capita_wide.csv 
+
 EDA notebook
 - code/Security/Crime_EDA.ipynb
+
 Final category score output
 - code/Security/Crime_Score_by_County.csv
 
@@ -75,12 +87,16 @@ This category captures county-level housing and cost of living values such as mo
 
 Datasets used and sources
 - https://www.huduser.gov/portal/datasets/50per.html
+
 Raw data location
 - data/Housing
+
 Cleaned data with selected variables
 - data/Housing/housing_data_wide.csv 
+
 EDA notebook
 - code/Housing/Housing_EDA.ipynb
+
 Final category score output
 - code/Housing/Housing_Score_by_County.csv
 
