@@ -152,6 +152,41 @@ EDA notebook
 Final category score output
 - code/financial_sustainability.csv
 
+### Category: Social capital & community
+This category measures how connected, engaged, and supportive a county’s residents are, reflecting the strength of community networks and civic participation.
+
+Datasets used and sources
+- https://www.census.gov/programs-surveys/ces/data/public-use-data/opportunity-atlas-data-tables.html
+
+Raw data location
+- data/social_economic/social_capital_county_economic_connectedness.csv 
+
+Cleaned data with selected variables
+- code/Social Capital and Community/social_capital_and_community.csv
+
+EDA notebook
+- code/Social Capital and Community/Social_Capital_and_Community.ipynb
+
+Final category score output
+- code/Social Capital and Community/Social Capital and Community Score.csv
+
+### Category: Mobility & infrastructure
+This category captures how well a county supports daily movement and access through commuting conditions, broadband availability, and population-density-related infrastructure
+
+Datasets used and sources
+- County Health Rankings https://www.countyhealthrankings.org/
+
+Raw data location
+- data/social_economic/MobilityData.csv
+
+Cleaned data with selected variables
+- code/Mobility and Infrastructure/mobility_and_infrastructure.csv 
+
+EDA notebook
+- code/Mobility and Infrastructure/Mobility_and_Infrastructure.ipynb
+
+Final category score output
+- code/Mobility and Infrastructure/Mobility and Infrastructure Score.csv
 
 ## Data Sources
 
